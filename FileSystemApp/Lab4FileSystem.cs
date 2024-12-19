@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections;
-
-class FileSystem
+public class FileSystem
 {
     private int blockSize = 512; // Розмір блоку
     private int maxDescriptors;
@@ -10,6 +9,8 @@ class FileSystem
     private BitArray blockMap; // Бітова карта
     private List<FileDescriptor> descriptors = new();
     private Dictionary<string, int> directory = new(); // Директорія
+    private Dictionary<int, OpenFile> openFiles = new(); // FD -> Стан
+    private int nextFd = 0;
 
     public FileSystem(int maxDescriptors, int storageSize)
     {
@@ -23,6 +24,8 @@ class FileSystem
         descriptors = new List<FileDescriptor>(maxDescriptors);
         directory.Clear();
         blockMap.SetAll(false);
+        openFiles.Clear();
+        nextFd = 0;
         Console.WriteLine("Файлова система ініціалізована.");
     }
 
@@ -52,21 +55,6 @@ class FileSystem
         Console.WriteLine($"Файл {name} створено.");
     }
 
-    public void Stat(string name)
-    {
-        if (!directory.TryGetValue(name, out int index))
-        {
-            Console.WriteLine("Файл не знайдено.");
-            return;
-        }
-
-        var descriptor = descriptors[index];
-        Console.WriteLine($"Інформація про файл {name}:");
-        Console.WriteLine($"Тип: {descriptor.Type}");
-        Console.WriteLine($"Розмір: {descriptor.Size} байт");
-        Console.WriteLine($"Посилання: {descriptor.Links}");
-    }
-
     public void Ls()
     {
         if (directory.Count == 0)
@@ -81,9 +69,58 @@ class FileSystem
             Console.WriteLine($"Ім'я файлу: {entry.Key}, Номер дескриптора: {entry.Value}");
         }
     }
+
+    public int Open(string name)
+    {
+        if (!directory.TryGetValue(name, out int descriptorIndex))
+        {
+            Console.WriteLine("Файл не знайдено.");
+            return -1; // Помилка
+        }
+
+        int fd = nextFd++;
+        openFiles[fd] = new OpenFile
+        {
+            DescriptorIndex = descriptorIndex,
+            Offset = 0
+        };
+        Console.WriteLine($"Файл {name} відкрито. FD: {fd}");
+        return fd;
+    }
+
+    public void Close(int fd)
+    {
+        if (!openFiles.ContainsKey(fd))
+        {
+            Console.WriteLine("FD не знайдено.");
+            return;
+        }
+
+        openFiles.Remove(fd);
+        Console.WriteLine($"FD {fd} закрито.");
+    }
+
+    public void Seek(int fd, int offset)
+    {
+        if (!openFiles.TryGetValue(fd, out OpenFile openFile))
+        {
+            Console.WriteLine("FD не знайдено.");
+            return;
+        }
+
+        var descriptor = descriptors[openFile.DescriptorIndex];
+        if (offset < 0 || offset > descriptor.Size)
+        {
+            Console.WriteLine("Неприпустиме зміщення.");
+            return;
+        }
+
+        openFile.Offset = offset;
+        Console.WriteLine($"Зміщення для FD {fd} встановлено на {offset}.");
+    }
 }
 
-class FileDescriptor
+public class FileDescriptor
 {
     public FileType Type { get; set; }
     public int Size { get; set; }
@@ -91,8 +128,14 @@ class FileDescriptor
     public List<int> BlockMap { get; set; } = new();
 }
 
-enum FileType
+public enum FileType
 {
     Regular,
     Directory
+}
+
+class OpenFile
+{
+    public int DescriptorIndex { get; set; }
+    public int Offset { get; set; }
 }
