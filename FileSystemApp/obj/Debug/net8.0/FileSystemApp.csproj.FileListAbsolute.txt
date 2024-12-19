@@ -1,0 +1,15 @@
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\bin\Debug\net8.0\FileSystemApp.exe
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\bin\Debug\net8.0\FileSystemApp.deps.json
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\bin\Debug\net8.0\FileSystemApp.runtimeconfig.json
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\bin\Debug\net8.0\FileSystemApp.dll
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\bin\Debug\net8.0\FileSystemApp.pdb
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\FileSystemApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\FileSystemApp.AssemblyInfoInputs.cache
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\FileSystemApp.AssemblyInfo.cs
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\FileSystemApp.csproj.CoreCompileInputs.cache
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\FileSystemApp.sourcelink.json
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\FileSystemApp.dll
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\refint\FileSystemApp.dll
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\FileSystemApp.pdb
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\FileSystemApp.genruntimeconfig.cache
+C:\Users\HP\Desktop\универ\ос\OS_lab_4\FileSystemApp\obj\Debug\net8.0\ref\FileSystemApp.dll
