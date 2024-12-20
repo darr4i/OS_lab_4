@@ -118,6 +118,141 @@ public class FileSystem
         openFile.Offset = offset;
         Console.WriteLine($"Зміщення для FD {fd} встановлено на {offset}.");
     }
+
+    public void Read(int fd, int size)
+    {
+        if (!openFiles.TryGetValue(fd, out OpenFile openFile))
+        {
+            Console.WriteLine("FD не знайдено.");
+            return;
+        }
+
+        var descriptor = descriptors[openFile.DescriptorIndex];
+        if (openFile.Offset + size > descriptor.Size)
+        {
+            size = descriptor.Size - openFile.Offset; 
+            Console.WriteLine("Попередження: зчитування обмежено до кінця файлу.");
+        }
+
+        if (size <= 0)
+        {
+            Console.WriteLine("Немає даних для зчитування.");
+            return;
+        }
+
+        byte[] data = new byte[size];
+        Array.Copy(storage, openFile.Offset, data, 0, size);
+
+        openFile.Offset += size;
+        Console.WriteLine($"Зчитано {size} байт: {BitConverter.ToString(data)}");
+    }
+
+    public void Write(int fd, int size)
+    {
+        if (!openFiles.TryGetValue(fd, out OpenFile openFile))
+        {
+            Console.WriteLine("FD не знайдено.");
+            return;
+        }
+
+        var descriptor = descriptors[openFile.DescriptorIndex];
+        if (openFile.Offset + size > storage.Length)
+        {
+            Console.WriteLine("Недостатньо місця для запису.");
+            return;
+        }
+
+        if (openFile.Offset + size > descriptor.Size)
+        {
+            descriptor.Size = openFile.Offset + size;
+        }
+
+        byte[] data = new byte[size];
+        for (int i = 0; i < size; i++) data[i] = (byte)(i % 256);
+
+        Array.Copy(data, 0, storage, openFile.Offset, size);
+        openFile.Offset += size;
+
+        Console.WriteLine($"Записано {size} байт.");
+    }
+
+        public void Unlink(string name)
+    {
+        if (!directory.TryGetValue(name, out int descriptorIndex))
+        {
+            Console.WriteLine("Файл не знайдено.");
+            return;
+        }
+
+        var descriptor = descriptors[descriptorIndex];
+        descriptor.Links--;
+
+        if (descriptor.Links == 0)
+        {
+            if (!openFiles.Values.Any(openFile => openFile.DescriptorIndex == descriptorIndex))
+            {
+                foreach (int block in descriptor.BlockMap)
+                {
+                    blockMap[block] = false;
+                }
+                descriptors[descriptorIndex] = null;
+                Console.WriteLine($"Ресурси файлу {name} звільнено.");
+            }
+        }
+
+        directory.Remove(name);
+        Console.WriteLine($"Файл {name} видалено.");
+    }
+
+        public void Truncate(string name, int newSize)
+    {
+        if (!directory.TryGetValue(name, out int descriptorIndex))
+        {
+            Console.WriteLine("Файл не знайдено.");
+            return;
+        }
+
+        var descriptor = descriptors[descriptorIndex];
+
+        if (newSize < descriptor.Size)
+        {
+            // Зменшення розміру
+            int blocksToFree = (descriptor.Size - newSize + blockSize - 1) / blockSize;
+
+            if (descriptor.BlockMap.Count == 0)
+            {
+                Console.WriteLine("Файл вже пустий.");
+                return;
+            }
+
+            for (int i = 0; i < blocksToFree && descriptor.BlockMap.Count > 0; i++)
+            {
+                int blockIndex = descriptor.BlockMap.Count - 1; // Останній блок
+                blockMap[descriptor.BlockMap[blockIndex]] = false; // Звільняємо блок
+                descriptor.BlockMap.RemoveAt(blockIndex); // Видаляємо блок
+            }
+        }
+        else if (newSize > descriptor.Size)
+        {
+            // Збільшення розміру
+            int blocksToAllocate = (newSize - descriptor.Size + blockSize - 1) / blockSize;
+            for (int i = 0; i < blocksToAllocate; i++)
+            {
+                int freeBlock = blockMap.Cast<bool>().ToList().FindIndex(b => !b);
+                if (freeBlock == -1)
+                {
+                    Console.WriteLine("Недостатньо місця для збільшення файлу.");
+                    return;
+                }
+                blockMap[freeBlock] = true;
+                descriptor.BlockMap.Add(freeBlock);
+            }
+        }
+
+        descriptor.Size = newSize;
+        Console.WriteLine($"Розмір файлу {name} змінено на {newSize} байт.");
+    }
+
 }
 
 public class FileDescriptor
@@ -139,3 +274,5 @@ class OpenFile
     public int DescriptorIndex { get; set; }
     public int Offset { get; set; }
 }
+
+
